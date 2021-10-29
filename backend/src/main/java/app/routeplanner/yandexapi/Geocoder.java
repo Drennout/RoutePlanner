@@ -80,13 +80,6 @@ public class Geocoder {
         return null;
     }
 
-    public JSONObject toCoords(){
-        String url = "https://search-maps.yandex.ru/v1/?text=Автосервис, Москва, 2 Вязовский проезд 4а&type=biz&lang=ru_RU&results=1&apikey=" + API_KEY;
-        String response = this.restTemplate.getForObject(url, String.class);
-        JSONObject json = new JSONObject(response);
-        return json;
-    }
-
     public void setAddresses(List<UserAddress> addresses) {
         this.addresses = addresses;
     }
