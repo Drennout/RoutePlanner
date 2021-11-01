@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserAddress {
+public class RequestAddress {
     private String address;
     private int type;
 }
