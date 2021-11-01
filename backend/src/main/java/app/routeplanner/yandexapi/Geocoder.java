@@ -1,31 +1,34 @@
 package app.routeplanner.yandexapi;
 
 import app.routeplanner.entities.Place;
-import app.routeplanner.entities.UserAddress;
+import app.routeplanner.entities.RequestAddress;
+import org.json.JSONArray;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class Geocoder {
     private final String API_KEY;
     private final String URL;
     private final RestTemplate restTemplate;
-    private List<UserAddress> addresses;
+    private List<Double> city;
 
     public Geocoder(RestTemplateBuilder restTemplateBuilder){
         this.API_KEY = System.getenv("YANDEX_API_KEY");
         this.restTemplate = restTemplateBuilder.build();
         this.URL = "https://search-maps.yandex.ru/v1/";
-        this.addresses = new ArrayList<>();
+        city = new ArrayList<>();
+        city.add(36.803047878);
+        city.add(55.142409829);
+        city.add(37.967288862);
+        city.add(56.020052);
     }
 
-    public List<UserAddress> parseRequest(String request){
-        List<UserAddress> userAddresses = new ArrayList<>();
+    public List<RequestAddress> parseRequest(String request){
+        List<RequestAddress> requestAddresses = new ArrayList<>();
         boolean isType = true;
 
         int type = 0;
@@ -43,20 +46,16 @@ public class Geocoder {
             }
             else if(s == ';'){
                 isType = true;
-                userAddresses.add(new UserAddress(address.toString(), type));
+                requestAddresses.add(new RequestAddress(address.toString(), type));
                 address.setLength(0);
             }
         }
 
-        return userAddresses;
+        return requestAddresses;
     }
 
-    public Place geocodeExact(String address){
-        String request = URL + "?text=" + address + "&type=biz&lang=ru_RU&results=1&apikey=" + API_KEY;
-        JSONObject response = new JSONObject(this.restTemplate.getForObject(request, String.class));
+    private Place getPlace(JSONObject response){
         String coords = response
-                .getJSONArray("features")
-                .getJSONObject(0)
                 .getJSONObject("geometry")
                 .get("coordinates").toString();
 
@@ -64,23 +63,82 @@ public class Geocoder {
         double latitude = Double.parseDouble(coords.substring(coords.indexOf(',') + 1, coords.indexOf(']')));
 
         String description = response
-                .getJSONArray("features")
-                .getJSONObject(0)
                 .getJSONObject("properties")
                 .get("description").toString();
         String name = response
-                .getJSONArray("features")
-                .getJSONObject(0)
                 .getJSONObject("properties")
                 .get("name").toString();
         return new Place(longitude, latitude, name, description);
     }
 
-    public Place geocodeNearest(String address){
-        return null;
+    public Place geocode(String address){
+        String request = URL + "?text=" + address + "&type=biz&lang=ru_RU&results=1&apikey=" + API_KEY;
+        JSONObject response = new JSONObject(this.restTemplate.getForObject(request, String.class));
+        return getPlace(response.getJSONArray("features").getJSONObject(0));
     }
 
-    public void setAddresses(List<UserAddress> addresses) {
-        this.addresses = addresses;
+    public Place geocode(String address, Place near){
+        List<Place> places = new ArrayList<>();
+
+        String request = URL + "?text=" + address + "&type=biz&lang=ru_RU&results=200&" + bbox() + "&apikey=" + API_KEY;
+        JSONObject response = new JSONObject(this.restTemplate.getForObject(request, String.class));
+        JSONArray objects = response.getJSONArray("features");
+
+        for (int i = 0; i < objects.length(); i++){
+            places.add(getPlace(objects.getJSONObject(i)));
+        }
+        class PlaceComparator implements Comparator<Place>{
+            @Override
+            public int compare(Place o1, Place o2) {
+                return Double.compare(o1.getDistance(near.getLongitude(), near.getLatitude()),o2.getDistance(near.getLongitude(), near.getLatitude()));
+            }
+        }
+
+        places.sort(new PlaceComparator());
+
+        return places.get(0);
+    }
+
+    public List<Place> getPlacesByRequestAddresses(List<RequestAddress> addresses){
+        List<Place> places = new ArrayList<>();
+        Place mainPlace = null;
+
+        for (RequestAddress ua: addresses){
+            Place place;
+            if(ua.getType() == 1){
+                place = geocode(ua.getAddress());
+                mainPlace = place;
+            } else {
+                place = geocode(ua.getAddress(), mainPlace);
+            }
+            places.add(place);
+        }
+        return places;
+    }
+
+    public JSONObject placesToJson(List<Place> places){
+        JSONObject points = new JSONObject();
+        JSONArray properties = new JSONArray();
+        for (Place p: places){
+            JSONObject place = new JSONObject();
+            place.put("name", p.getName());
+            place.put("description", p.getDescription());
+            place.put("lon", p.getLongitude());
+            place.put("lat", p.getLatitude());
+            properties.put(place);
+        }
+        points.put("points", properties);
+        return points;
+    }
+
+    private String bbox(){
+        return "bbox=" + city.get(0)
+                + "," + city.get(1)
+                + "~" + city.get(2)
+                + "," + city.get(3);
+    }
+
+    public void setCity(List<Double> city) {
+        this.city = city;
     }
 }
