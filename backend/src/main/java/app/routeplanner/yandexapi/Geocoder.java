@@ -14,17 +14,17 @@ public class Geocoder {
     private final String API_KEY;
     private final String URL;
     private final RestTemplate restTemplate;
-    private List<Double> city;
+    private List<Double> bboxCity;
 
     public Geocoder(RestTemplateBuilder restTemplateBuilder){
         this.API_KEY = System.getenv("YANDEX_API_KEY");
         this.restTemplate = restTemplateBuilder.build();
         this.URL = "https://search-maps.yandex.ru/v1/";
-        city = new ArrayList<>();
-        city.add(36.803047878);
-        city.add(55.142409829);
-        city.add(37.967288862);
-        city.add(56.020052);
+        this.bboxCity = new ArrayList<>();
+        this.bboxCity.add(36.803047878);
+        this.bboxCity.add(55.142409829);
+        this.bboxCity.add(37.967288862);
+        this.bboxCity.add(56.020052);
     }
 
     public List<RequestAddress> parseRequest(String request){
@@ -132,13 +132,13 @@ public class Geocoder {
     }
 
     private String bbox(){
-        return "bbox=" + city.get(0)
-                + "," + city.get(1)
-                + "~" + city.get(2)
-                + "," + city.get(3);
+        return "bbox=" + this.bboxCity.get(0)
+                + "," + this.bboxCity.get(1)
+                + "~" + this.bboxCity.get(2)
+                + "," + this.bboxCity.get(3);
     }
 
-    public void setCity(List<Double> city) {
-        this.city = city;
+    public void setBboxCity(List<Double> city) {
+        this.bboxCity = city;
     }
 }
