@@ -99,7 +99,8 @@ public class Geocoder {
         return places.get(0);
     }
 
-    public List<Place> getPlacesByRequestAddresses(List<RequestAddress> addresses){
+    public List<Place> getPlacesByRequestAddresses(List<RequestAddress> addresses, List<Double> city){
+        setBboxCity(city);
         List<Place> places = new ArrayList<>();
         Place mainPlace = null;
 
