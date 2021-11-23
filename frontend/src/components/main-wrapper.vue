@@ -17,6 +17,6 @@ export default {
 
 <style>
   .main-wrapper{
-    margin-top: 5%;
+    margin-top: 72px;
   }
 </style>

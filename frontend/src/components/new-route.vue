@@ -147,7 +147,7 @@ export default {
       this.points.splice(index, 1);
     },
     submit() {
-      let url = "http://localhost:8000/geocode?request="; //1,Москва Кировоградская улица, 22;2,starbucks;2,макдональдс;1,МИРЭА пр вернадского 78;&city=Москва"
+      let url = "http://localhost:8000/api/map/geocode?request="; //1,Москва Кировоградская улица, 22;2,starbucks;2,макдональдс;1,МИРЭА пр вернадского 78;&city=Москва"
       let addresses = "";
       this.points.forEach((element) => {
         let bool_int = element.priority ? 1 : 2;
@@ -166,6 +166,7 @@ export default {
       }
       getPoints(this.coords, url);
       this.GET_POINTS(this.coords);
+      console.log(this.POINTS)
       this.profiles.forEach(el => {
         if(el.isSelected)
           this.GET_PROFILE(el.name)

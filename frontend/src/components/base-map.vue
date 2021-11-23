@@ -16,17 +16,15 @@ export default {
       map: null,
       route_json: null,
       query: null,
-      points: [],
+      points: null,
     };
   },
   computed: {
-    ...mapGetters(["ACCESSTOCKEN", "POINTS", "PROFILE"]),
+    ...mapGetters(["POINTS", "PROFILE"]),
   },
   methods: {
     initMap() {
-
-      this.points = this.POINTS;
-      mapboxgl.accessToken = this.ACCESSTOCKEN;
+      mapboxgl.accessToken = this.$store.state.apiKey.value;
       this.map = new mapboxgl.Map({
         container: "mapContainer",
         style: "mapbox://styles/mapbox/streets-v11",
@@ -37,6 +35,11 @@ export default {
       // this.map.setMaxBounds(this.bounds);
 
       this.map.on("load", () => {
+        this.points = this.POINTS
+        console.log(this.POINTS)
+        while(this.points === undefined){
+          console.log('undef')
+        }
         this.map.jumpTo({ center: this.points[0] });
         this.points.forEach((el) => {
           const marker = new mapboxgl.Marker();
@@ -44,7 +47,7 @@ export default {
           marker.addTo(this.map);
         });
         async function getRoute(start, end, i, map, profile) {
-          const url = `http://localhost:8000/direction?lon1=${start[0]}&lat1=${start[1]}&lon2=${end[0]}&lat2=${end[1]}&routingProfile=${profile}`;
+          const url = `http://localhost:8000/api/map/direction?lon1=${start[0]}&lat1=${start[1]}&lon2=${end[0]}&lat2=${end[1]}&routingProfile=${profile}`;
           const query = await fetch(url, { method: "GET" });
           const json = await query.json();
           const data = json.routes[0];
