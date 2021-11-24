@@ -22,8 +22,6 @@ public class RouteController {
 
     @PostMapping("/{id}") //id - user_id
     public void saveRoute(@PathVariable Long id, @Valid @RequestBody RouteRequest routeRequest){
-        System.out.println(routeRequest.getRequest());
-        System.out.println(routeRequest.getPoints());
         routeService.saveRoute(new Route(routeRequest.getRequest(), id, routeRequest.getPoints(), routeRequest.getProfile()));
     }
 
