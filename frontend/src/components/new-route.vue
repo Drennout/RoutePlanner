@@ -59,17 +59,17 @@
           <h5>Select routing profile</h5>
           <div v-for="(profile, index) in profiles" :key="index">
             <div class="form-check">
-            <input
-              class="form-check-input"
-              type="radio"
-              name="flexRadioDefault"
-              id="flexRadioDefault1"
-              v-model="profile.isSelected"
-              :value="profile.isSelected"
-              @change="changeProfile(index)"
-            />
-            <label class="form-check-label" for="flexRadioDefault1">{{profile.title}}</label>
-          </div>
+              <input
+                class="form-check-input"
+                type="radio"
+                name="flexRadioDefault"
+                id="flexRadioDefault1"
+                v-model="profile.isSelected"
+                :value="profile.isSelected"
+                @change="changeProfile(index)"
+              />
+              <label class="form-check-label" for="flexRadioDefault1">{{profile.title}}</label>
+            </div>
           </div>
         </div>
       </div>
@@ -86,7 +86,7 @@
 </template>
 <script>
 import { mapActions, mapGetters } from "vuex";
-
+import UserService from '../services/user.service'
 export default {
   name: "new-route",
   data: () => ({
@@ -122,6 +122,9 @@ export default {
   }),
   computed: {
     ...mapGetters(["POINTS", "PROFILE"]),
+    currentUser() {
+      return this.$store.state.auth.user;
+    },
   },
   methods: {
     ...mapActions(["GET_POINTS", "GET_PROFILE"]),
@@ -129,13 +132,11 @@ export default {
       if (index === this.points.length - 1 || index === 0) return false;
       else return true;
     },
-    changeProfile(index){
-      this.profiles.forEach(el => {
-        if(el === this.profiles[index])
-          el.isSelected = true
-        else 
-          el.isSelected = false
-      })
+    changeProfile(index) {
+      this.profiles.forEach((el) => {
+        if (el === this.profiles[index]) el.isSelected = true;
+        else el.isSelected = false;
+      });
     },
     addNewAddress() {
       this.points.push({
@@ -149,13 +150,13 @@ export default {
     submit() {
       let url = "http://localhost:8000/api/map/geocode?request="; //1,Москва Кировоградская улица, 22;2,starbucks;2,макдональдс;1,МИРЭА пр вернадского 78;&city=Москва"
       let addresses = "";
+      let addressessNoBoolInt = ""
       this.points.forEach((element) => {
         let bool_int = element.priority ? 1 : 2;
+        addressessNoBoolInt += element.address + ";"
         addresses += bool_int += "," + element.address + ";";
       });
       url += addresses + "&city=" + this.city;
-
-      // const test_url = "http://localhost:8000/testJsonData";
 
       async function getPoints(points, url) {
         const query = await fetch(url, { method: "GET" });
@@ -166,12 +167,17 @@ export default {
       }
       getPoints(this.coords, url);
       this.GET_POINTS(this.coords);
-      console.log(this.POINTS)
-      this.profiles.forEach(el => {
-        if(el.isSelected)
-          this.GET_PROFILE(el.name)
-      })
-      
+      console.log(this.POINTS);
+      this.profiles.forEach((el) => {
+        if (el.isSelected) this.GET_PROFILE(el.name);
+      });
+
+      if (this.currentUser) {
+        console.log( addresses + "&city=" + this.city)
+        console.log( addresses)
+        
+        UserService.postUserRoute(this.currentUser.id, addresses + "&city=" + this.city, addressessNoBoolInt, this.PROFILE)
+      }
     },
   },
 };

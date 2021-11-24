@@ -32,7 +32,6 @@ export default {
         zoom: 12,
       });
       // set the bounds of the map
-      // this.map.setMaxBounds(this.bounds);
 
       this.map.on("load", () => {
         this.points = this.POINTS
@@ -104,6 +103,9 @@ export default {
 </script>
 
 <style scoped>
+#mapContainer{
+  margin-top: 0
+}
 .mapboxgl-map {
   position: absolute;
   width: 100%;

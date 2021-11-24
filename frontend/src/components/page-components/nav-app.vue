@@ -50,7 +50,7 @@ export default {
         },
         {
           name: "login",
-          title: "Login",
+          title: "Account",
           isActive: false,
         },
       ],
